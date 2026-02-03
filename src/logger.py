@@ -30,11 +30,11 @@ class LoggerConfig:
         "- %(message)s"
     )
     level: int = logging.INFO
-    date: str = "%Y-%m-%d %H:%M:%S"
+    date: str = "%d-%m-%Y %H:%M:%S"
 
     log_colors: Dict[str, str] = field(default_factory=lambda: {
         "DEBUG": "cyan",
-        "INFO": "green",
+        "INFO": "blue",
         "WARNING": "bold_yellow",
         "ERROR": "red",
         "CRITICAL": "bold_red",
@@ -56,7 +56,22 @@ class ContextLogger(logging.LoggerAdapter):
     Logger adapter that adds context information to log messages.
     """
 
-    def process(self, msg: str, kwargs: dict):
+    def process(
+        self,
+        msg: str,
+        kwargs: dict
+    ):
+        """
+        Process the log message and add context information.
+
+        Args:
+            msg: The log message.
+            kwargs: Additional keyword arguments.
+
+        Returns:
+            Tuple[str, dict]: The processed log message and updated keyword arguments.
+        """
+
         extra = kwargs.get("extra", {})
 
         if "context" not in extra or not extra["context"]:
@@ -75,7 +90,7 @@ class Logger:
     _initialized: bool = False
 
 
-    def __new__(cls) -> "Logger":
+    def __new__(cls, config: Optional[LoggerConfig] = None) -> "Logger":
         """
         Create a new logger instance.
 
@@ -96,9 +111,16 @@ class Logger:
 
         Args:
             config: The logger configuration settings.
+
+        Returns:
+            None
         """
-        if Logger._initialized:
-            return
+
+        if config is not None or not Logger._initialized:
+            self._initialize(config or LoggerConfig())
+
+
+    def _initialize(self, config: LoggerConfig) -> None:
 
         Logger._initialized = True
         self.config = config
@@ -117,12 +139,31 @@ class Logger:
             self._add_handler(logging.FileHandler(path))
 
 
+    @classmethod
+    def configure(cls, config: LoggerConfig) -> None:
+        """
+        Set the logger configuration.
+
+        Args:
+            config: The logger configuration settings.
+
+        Returns:
+            None
+        """
+        instance = cls(config)
+        instance._initialize(config)
+
+
+
     def _add_handler(self, handler: logging.Handler) -> None:
         """
         Add a logging handler to the logger.
 
         Args:
             handler: The logging handler to add.
+
+        Returns:
+            None
         """
         handler.setLevel(self._logger.level)
         handler.setFormatter(self.config.formatter())
@@ -188,12 +229,13 @@ class Logger:
         return ContextLogger(self._logger, {"context": context})
 
 
-logger = Logger().get_logger()
+logger_instance = Logger()
 
 if __name__ == "__main__":
     def main():
-        log = Logger().bind("testing")
-        log.info("This is an info message.")
-        log.error("This is an error message.")
+        logger_instance.bind("testing")
+        logger = logger_instance.get_logger()
+        logger.info("This is an info message.")
+        logger.error("This is an error message.")
 
     main()
