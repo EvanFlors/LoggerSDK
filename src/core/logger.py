@@ -5,6 +5,7 @@ import os
 import sys
 import inspect
 import logging
+import functools
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, Dict
@@ -30,7 +31,7 @@ class LoggerConfig:
         "- %(message)s"
     )
     level: int = logging.INFO
-    date: str = "%d-%m-%Y %H:%M:%S"
+    date: str = "%d-%m-%y | %H:%M:%S"
 
     log_colors: Dict[str, str] = field(default_factory=lambda: {
         "DEBUG": "cyan",
@@ -72,12 +73,11 @@ class ContextLogger(logging.LoggerAdapter):
             Tuple[str, dict]: The processed log message and updated keyword arguments.
         """
 
-        extra = kwargs.get("extra", {})
+        extra = kwargs.setdefault("extra", {})
 
         if "context" not in extra or not extra["context"]:
-            extra["context"] = Logger()._auto_context()
+            extra["context"] = self.extra.get("context") or Logger._auto_context_cached()
 
-        kwargs["extra"] = extra
         return msg, kwargs
 
 
@@ -90,7 +90,7 @@ class Logger:
     _initialized: bool = False
 
 
-    def __new__(cls, config: Optional[LoggerConfig] = None) -> "Logger":
+    def __new__(cls) -> "Logger":
         """
         Create a new logger instance.
 
@@ -105,7 +105,7 @@ class Logger:
         return cls._instance
 
 
-    def __init__(self, config: LoggerConfig = LoggerConfig()) -> None:
+    def __init__(self, config: LoggerConfig = None) -> None:
         """
         Initialize the logger with the given configuration.
 
@@ -116,33 +116,13 @@ class Logger:
             None
         """
 
-        if config is not None or not Logger._initialized:
-            self._initialize(config or LoggerConfig())
+        if not Logger._initialized and config is not None:
+            self._initialize(config)
 
 
     def _initialize(self, config: LoggerConfig) -> None:
-
-        Logger._initialized = True
-        self.config = config
-
-        self._logger = logging.getLogger(self.config.name)
-        self._logger.setLevel(self.config.level)
-        self._logger.propagate = False
-        self._logger.handlers.clear()
-
-        self._add_handler(logging.StreamHandler(sys.stdout))
-
-        if self.config.directory:
-            os.makedirs(self.config.directory, exist_ok=True)
-            filename = f"{self.config.name}_{datetime.now():%Y%m%d_%H%M%S}.log"
-            path = os.path.join(self.config.directory, filename)
-            self._add_handler(logging.FileHandler(path))
-
-
-    @classmethod
-    def configure(cls, config: LoggerConfig) -> None:
         """
-        Set the logger configuration.
+        Initialize the logger with the given configuration.
 
         Args:
             config: The logger configuration settings.
@@ -150,62 +130,90 @@ class Logger:
         Returns:
             None
         """
-        instance = cls(config)
-        instance._initialize(config)
+
+        Logger._initialized = True
+        self.config = config
+
+        self._logger = logging.getLogger(config.name)
+        self._logger.setLevel(config.level)
+        self._logger.propagate = False
+
+        if not self._logger.handlers:
+            self._add_console_handler()
+            if config.directory:
+                self._add_file_handler()
 
 
-
-    def _add_handler(self, handler: logging.Handler) -> None:
+    # --------------------------------------------------
+    # Handlers
+    # --------------------------------------------------
+    def _add_console_handler(self):
         """
-        Add a logging handler to the logger.
-
-        Args:
-            handler: The logging handler to add.
-
-        Returns:
-            None
+        Add a console handler to the logger.
         """
-        handler.setLevel(self._logger.level)
+        handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(self.config.formatter())
+        handler.setLevel(self.config.level)
         self._logger.addHandler(handler)
 
 
-    def _auto_context(self) -> str:
+    def _add_file_handler(self):
         """
-        Automatically determine context from the call stack.
+        Add a file handler to the logger.
+        """
 
-        Returns:
-            str: Context string in the form:
-                    <file>.<Class>.<function> or <file>.<function>
-        """
+        os.makedirs(self.config.directory, exist_ok=True)
+        filename = f"{self.config.name} | {self._get_timestamp()}.log"
+        path = os.path.join(self.config.directory, filename)
+
+        handler = logging.FileHandler(path)
+        handler.setFormatter(self.config.formatter())
+        handler.setLevel(self.config.level)
+        self._logger.addHandler(handler)
+
+
+    # --------------------------------------------------
+    # Context resolution
+    # --------------------------------------------------
+    @staticmethod
+    @functools.lru_cache(maxsize=128)
+    def _auto_context_cached() -> str:
         try:
-            for frame_info in inspect.stack()[2:]:
-                frame = frame_info.frame
-                module = inspect.getmodule(frame)
-
-                # Skip internal logging frames
+            for frame_info in inspect.stack()[3:]:
+                module = inspect.getmodule(frame_info.frame)
                 if not module:
                     continue
                 if module.__name__.startswith("logging"):
-                    continue
-                if module.__name__ == __name__:
                     continue
 
                 filename = os.path.basename(module.__file__) if module.__file__ else module.__name__
                 function = frame_info.function
                 lineno = frame_info.lineno
 
-                # Detect class context if available
-                for local_name, local_val in frame.f_locals.items():
-                    if local_name == "self":
-                        class_name = local_val.__class__.__name__
-                        return f"{filename}:{lineno} {class_name}.{function}"
-                return f"{filename}:{lineno} {function}"
+                self_obj = frame_info.frame.f_locals.get("self")
+                if self_obj:
+                    return f"{filename}:{lineno} {self_obj.__class__.__name__}.{function}()"
+
+                return f"{filename}:{lineno} {function}()"
 
         except Exception:
             return "unknown.context"
 
+    # --------------------------------------------------
+    # Utils
+    # --------------------------------------------------
 
+    def _get_timestamp(
+        self,
+        format: Optional[str] = None
+    ) -> str:
+        if format:
+            return datetime.now().strftime(format)
+        return datetime.now().strftime(self.config.date)
+
+    # --------------------------------------------------
+    # Public API
+    # --------------------------------------------------
     def get_logger(self) -> ContextLogger:
         """
         Get a logger with automatic context.
@@ -229,10 +237,30 @@ class Logger:
         return ContextLogger(self._logger, {"context": context})
 
 
-logger_instance = Logger()
+    @classmethod
+    def configure(cls, config: LoggerConfig = None) -> None:
+        """
+        Set the logger configuration.
+
+        Args:
+            config: The logger configuration settings.
+
+        Returns:
+            None
+        """
+        if not config:
+            config = LoggerConfig()
+
+        if not cls._initialized:
+            instance = cls._instance or cls()
+            instance._initialize(config)
+
 
 if __name__ == "__main__":
     def main():
+        config = LoggerConfig(name="test", directory="testing")
+        Logger.configure(config)
+        logger_instance = Logger()
         logger_instance.bind("testing")
         logger = logger_instance.get_logger()
         logger.info("This is an info message.")

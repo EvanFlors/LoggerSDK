@@ -10,7 +10,7 @@ import inspect
 # ---------------------------------------------------------------------
 # Internal application imports
 # ---------------------------------------------------------------------
-from src.logger import logger_instance
+from src.core.logger import Logger
 
 
 def function_log(*, show_args: bool = True, show_result: bool = True):
@@ -47,9 +47,7 @@ def function_log(*, show_args: bool = True, show_result: bool = True):
 
             context = " | ".join(context_parts)
 
-            logger_instance.bind(context=context)
-            logger = logger_instance.get_logger()
-
+            logger = Logger().bind(context=context)
 
             try:
                 # ------------------------------------------------------------

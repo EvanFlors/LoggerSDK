@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 # Internal application imports
 # ---------------------------------------------------------------------
-from src.logger import logger_instance, LoggerConfig
+from src.core.logger import Logger, LoggerConfig
 
 from src.decorators.functions import function_log
 from src.decorators.classes import class_log
@@ -32,7 +32,10 @@ if __name__ == "__main__":
         directory="testing",
     )
 
-    logger_instance.configure(config)
+    Logger.configure(config)
+    logger_instance = Logger()
+    logger_instance.bind("testing")
+    logger = logger_instance.get_logger()
 
     sample = SampleClass()
     sample.instance_method(5, 10)
