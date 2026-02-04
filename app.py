@@ -6,7 +6,7 @@ from src.core.logger import Logger, LoggerConfig
 from src.decorators.functions import function_log
 from src.decorators.classes import class_log
 
-@class_log(show_args=False, show_result=True)
+@class_log(show_args=True, show_result=True)
 class SampleClass:
     def instance_method(self, x, y):
         return x + y
@@ -30,6 +30,7 @@ if __name__ == "__main__":
     config = LoggerConfig(
         name="test",
         directory="testing",
+        json=True
     )
 
     Logger.configure(config)

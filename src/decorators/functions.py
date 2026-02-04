@@ -58,10 +58,21 @@ def function_log(*, show_args: bool = True, show_result: bool = True):
                         f"Executing {function_name} in {file_name}"
                         f"\nargs: {json.dumps(args, default=str, indent=2)}"
                         f"\nkwargs: {json.dumps(kwargs, default=str, indent=2)}",
-                        extra={"context": context}
+                        extra={
+                            "context": context,
+                            "cur_args": args,
+                            "cur_kwargs": kwargs,
+                            "type": "Execution"
+                        }
                     )
                 else:
-                    logger.info("Executing function", extra={"context": context})
+                    logger.info(
+                        "Executing function",
+                        extra={
+                            "type": "Execution",
+                            "context": context
+                        }
+                    )
 
                 # ------------------------------------------------------------
                 # Execute function
@@ -76,12 +87,19 @@ def function_log(*, show_args: bool = True, show_result: bool = True):
                 if show_result:
                     logger.info(
                         f"Finished {function_name}() in {elapsed:.4f} seconds.\n"
-                        f"{json.dumps(result, default=str, indent=2)}", extra={"context": context}
+                        f"{json.dumps(result, default=str, indent=2)}",
+                        extra={
+                            "context": context,
+                            "type": "Result"
+                        }
                     )
                 else:
                     logger.info(
                         f"Finished in {elapsed:.4f}s",
-                        extra={"context": context}
+                        extra={
+                            "context": context,
+                            "type": "Result"
+                        }
                     )
 
                 return result
