@@ -6,7 +6,7 @@ import logging
 # ---------------------------------------------------------------------
 # Internal application imports
 # ---------------------------------------------------------------------
-from src.core.logger import Logger, LoggerConfig
+from src.logger import Logger, LoggerConfig
 
 from src.decorators.functions import function_log
 from src.decorators.classes import class_log

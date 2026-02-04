@@ -224,6 +224,8 @@ src/
  ├── logger.py              # Logger singleton + ContextLogger
  ├── config.py              # LoggerConfig + JSONFormatter + SamplingFilter
  ├── core/
+ │    ├── filters.py        # Log filtering logic
+ │    ├── formatters.py     # Log formatting logic
  │    └── tracer.py         # contextvars trace_id/span_id
  └── decorators/
       ├── functions.py      # function_log decorator

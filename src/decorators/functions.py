@@ -10,7 +10,7 @@ import inspect
 # ---------------------------------------------------------------------
 # Internal application imports
 # ---------------------------------------------------------------------
-from src.core.logger import Logger
+from src.logger import Logger
 
 
 def function_log(*, show_args: bool = True, show_result: bool = True):
