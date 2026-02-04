@@ -107,8 +107,8 @@ def function_log(*, show_args: bool = True, show_result: bool = True):
             except Exception as exc:
                 elapsed = time.time() - start_time
                 logger.error(
-                    f"Exception after {elapsed:.4f}s: {exc}",
-                    extra={"traceback": traceback.format_exc()},
+                    f"Exception after {elapsed:.4f}s: {exc}\n"
+                    f"{traceback.format_exc().splitlines()[-3].strip()}",
                 )
                 raise
 

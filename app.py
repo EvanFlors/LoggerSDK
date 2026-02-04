@@ -1,4 +1,9 @@
 # ---------------------------------------------------------------------
+# Standard library
+# ---------------------------------------------------------------------
+import logging
+
+# ---------------------------------------------------------------------
 # Internal application imports
 # ---------------------------------------------------------------------
 from src.core.logger import Logger, LoggerConfig
@@ -6,7 +11,8 @@ from src.core.logger import Logger, LoggerConfig
 from src.decorators.functions import function_log
 from src.decorators.classes import class_log
 
-@class_log(show_args=True, show_result=True)
+
+@class_log(show_args=False, show_result=False)
 class SampleClass:
     def instance_method(self, x, y):
         return x + y
@@ -20,9 +26,14 @@ class SampleClass:
         return x + y
 
 
-@function_log(show_args=True, show_result=True)
+@function_log(show_args=False, show_result=False)
 def sample_function(x, y):
     return x + y
+
+
+@function_log(show_args=False, show_result=False)
+def error_function(x, y):
+    return x / 0
 
 
 if __name__ == "__main__":
@@ -30,7 +41,12 @@ if __name__ == "__main__":
     config = LoggerConfig(
         name="test",
         directory="testing",
-        json=True
+        level=logging.INFO,
+        module_levels={
+            "src.core": logging.DEBUG,
+        },
+        deterministic=True,
+        json_logs=False,
     )
 
     Logger.configure(config)
@@ -44,3 +60,4 @@ if __name__ == "__main__":
     sample.static_method(5, 10)
 
     sample_function(5, 10)
+    error_function(5, 10)

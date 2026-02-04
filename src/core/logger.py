@@ -10,12 +10,9 @@ from typing import Optional
 # ---------------------------------------------------------------------
 # Internal application imports
 # ---------------------------------------------------------------------
-from src.config import (
-    LoggerConfig,
-    JSONFormatter,
-    SamplingFilter,
-    DeterministicSamplingFilter
-)
+from src.config import LoggerConfig
+from src.core.formatters import JSONFormatter, BaseFormatter, ExtrasColoredFormatter
+from src.core.filters import SamplingFilter, DeterministicSamplingFilter
 
 from src.core.tracer import (
     trace_id_var,
@@ -25,33 +22,48 @@ from src.core.tracer import (
 )
 
 class ContextLogger(logging.LoggerAdapter):
-    """
-    Logger adapter that adds context information to log messages.
-    """
-
-    def process(
-        self,
-        msg: str,
-        kwargs: dict
-    ):
-        """
-        Process the log message and add context information.
-
-        Args:
-            msg: The log message.
-            kwargs: Additional keyword arguments.
-
-        Returns:
-            Tuple[str, dict]: The processed log message and updated keyword arguments.
-        """
-
+    def process(self, msg: str, kwargs: dict):
         extra = kwargs.setdefault("extra", {})
-        extra.setdefault("context", self.extra.get("context"))
+
         extra.setdefault("trace_id", trace_id_var.get())
         extra.setdefault("span_id", span_id_var.get())
 
-        if "context" not in extra or not extra["context"]:
-            extra["context"] = self.extra.get("context") or Logger._auto_context()
+        bound_context = self.extra.get("context")
+
+        try:
+            frame = sys._getframe(1)
+
+            while frame:
+                filename = frame.f_code.co_filename.replace("\\", "/")
+                func = frame.f_code.co_name
+
+                if (
+                    "/logging/" in filename
+                    or filename.endswith("logging/__init__.py")
+                    or "src/core/logger" in filename
+                    or func in ("process",)
+                ):
+                    frame = frame.f_back
+                    continue
+
+                caller_file = os.path.basename(filename)
+                caller_func = func
+                break
+
+            else:
+                caller_file = "unknown"
+                caller_func = "unknown"
+
+        except Exception:
+            caller_file = "unknown"
+            caller_func = "unknown"
+
+        logger_name = self.logger.name
+
+        if bound_context:
+            extra["context"] = f"{logger_name} | {bound_context}"
+        else:
+            extra["context"] = f"{logger_name} | {caller_file}:{caller_func}()"
 
         return msg, kwargs
 
@@ -114,25 +126,27 @@ class Logger:
         Add a console handler to the logger.
         """
         handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(self.config.level)
-        handler.setFormatter(self.config.formatter())
+        handler.setLevel(logging.NOTSET)
+        handler.setFormatter(BaseFormatter().formatter(
+            self.config.date
+        ))
 
-        handler.addFilter(
-            DeterministicSamplingFilter(
-                rate=self.config.sample_rate,
-                min_level=logging.WARNING,
+        if getattr(self.config, 'deterministic', False):
+            handler.addFilter(
+                DeterministicSamplingFilter(
+                    rate=self.config.sample_rate,
+                    min_level=logging.WARNING,
+                )
             )
-        ) if hasattr(self.config, 'deterministic') else (
+        else:
             handler.addFilter(
                 SamplingFilter(
                     rate=self.config.sample_rate,
                     min_level=logging.WARNING,
                 )
             )
-        )
 
         self._logger.addHandler(handler)
-
 
 
     def _add_file_handler(self):
@@ -158,9 +172,9 @@ class Logger:
         if self.config.json_logs:
             handler.setFormatter(JSONFormatter())
         else:
-            handler.setFormatter(self.config.formatter())
+            handler.setFormatter(BaseFormatter())
 
-        handler.setLevel(self.config.level)
+        handler.setLevel(logging.NOTSET)
         self._logger.addHandler(handler)
 
     # --------------------------------------------------
@@ -266,7 +280,7 @@ if __name__ == "__main__":
                 name="test",
                 directory="testing",
                 module_levels={
-                    "src.core": logging.WARNING,
+                    "test": logging.DEBUG,
                 },
                 deterministic=True,
             )
