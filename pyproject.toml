@@ -3,13 +3,13 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Logger"
+name = "Evan-Logger"
 version = "0.1.0"
 description = "Structured colored logger with trace/span context and sampling"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
-authors = [{ name="Evan", email="your@email.com" }]
+authors = [{ name="Evan", email="efloresp06@liverpool.com.mx" }]
 keywords = ["logging", "colorlog", "structured-logging", "fastapi"]
 dependencies = [
     "pydantic>=2.12.5",
@@ -21,8 +21,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/youruser/my-logger"
-Repository = "https://github.com/youruser/my-logger"
+Homepage = "https://github.com/EvanFloresLv/Logger.git"
+Repository = "https://github.com/EvanFloresLv/Logger.git"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
