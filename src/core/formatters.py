@@ -57,8 +57,8 @@ class JSONFormatter(logging.Formatter):
 
         # Capture any custom extra fields
         extras = {
-            k: v for k, v in record.__dict__.items()
-            if k not in self._reserved and k not in payload
+            key: v for key, v in record.__dict__.items()
+            if key not in self._reserved and key not in payload
         }
         if extras:
             payload["extra"] = extras
@@ -74,8 +74,8 @@ class ExtrasColoredFormatter(ColoredFormatter):
 
     def format(self, record: logging.LogRecord) -> str:
         extras = {
-            k: v for k, v in record.__dict__.items()
-            if k not in self._reserved
+            key: value for key, value in record.__dict__.items()
+            if key not in self._reserved
         }
 
         extras.pop("context", None)

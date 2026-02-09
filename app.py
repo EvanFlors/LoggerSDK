@@ -6,7 +6,8 @@ import logging
 # ---------------------------------------------------------------------
 # Internal application imports
 # ---------------------------------------------------------------------
-from src.logger import Logger, LoggerConfig
+from src.logger import Logger
+from src.config import LoggingSettings
 
 from src.decorators.functions import function_log
 from src.decorators.classes import class_log
@@ -38,20 +39,23 @@ def error_function(x, y):
 
 if __name__ == "__main__":
 
-    config = LoggerConfig(
-        name="test",
-        directory="testing",
-        level=logging.INFO,
-        module_levels={
-            "src.core": logging.DEBUG,
-        },
-        deterministic=True,
-        json_logs=False,
+    Logger.configure(
+        LoggingSettings(
+            level="INFO",
+            name="test",
+            directory="logs",
+            module_levels={
+                "test": "DEBUG",
+            },
+            deterministic=True,
+        )
     )
 
-    Logger.configure(config)
     logger_instance = Logger()
+    logger_instance.set_span("test_span")
+    logger_instance.set_trace("test_trace")
     logger_instance.bind("testing")
+
     logger = logger_instance.get_logger()
 
     sample = SampleClass()
