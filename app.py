@@ -6,11 +6,11 @@ import logging
 # ---------------------------------------------------------------------
 # Internal application imports
 # ---------------------------------------------------------------------
-from src.logger import Logger
-from src.config import LoggingSettings
+from logger.logger import Logger
+from logger.config import LoggingSettings
 
-from src.decorators.functions import function_log
-from src.decorators.classes import class_log
+from logger.decorators.functions import function_log
+from logger.decorators.classes import class_log
 
 
 @class_log(show_args=False, show_result=False)

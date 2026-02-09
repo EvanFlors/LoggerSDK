@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Logger"
+version = "0.1.0"
+description = "Structured colored logger with trace/span context and sampling"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name="Evan", email="your@email.com" }]
+keywords = ["logging", "colorlog", "structured-logging", "fastapi"]
+dependencies = [
+    "pydantic>=2.12.5",
+    "tomli>=2.4.0",
+    "pydantic-settings>=2.0",
+    "colorlog>=6.7.0",
+    "python-dotenv>=1.2.1",
+    "pytest>=9.0.2"
+]
+
+[project.urls]
+Homepage = "https://github.com/youruser/my-logger"
+Repository = "https://github.com/youruser/my-logger"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

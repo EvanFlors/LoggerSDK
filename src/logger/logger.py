@@ -19,7 +19,7 @@ from colorlog import ColoredFormatter
 # ---------------------------------------------------------------------
 # Internal application imports
 # ---------------------------------------------------------------------
-from src.config import LoggingSettings
+from logger.config import LoggingSettings
 
 trace_id_var = ContextVar("trace_id", default=None)
 span_id_var = ContextVar("span_id", default=None)

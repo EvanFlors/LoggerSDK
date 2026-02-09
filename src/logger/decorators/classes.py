@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 # Internal application imports
 # ---------------------------------------------------------------------
-from src.decorators.functions import function_log
+from logger.decorators.functions import function_log
 
 
 def class_log(*, show_args: bool = True, show_result: bool = True):
