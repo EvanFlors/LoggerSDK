@@ -3,8 +3,8 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "logger"
-version = "1.0.0"
+name = "logger-sdk-observability"
+version = "0.0.1"
 description = "Structured logging framework with DI, queue pipeline, rotation, RabbitMQ and OpenTelemetry"
 readme = "README.md"
 requires-python = ">=3.10"
