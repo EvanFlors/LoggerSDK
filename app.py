@@ -1,4 +1,4 @@
-from src import LoggerConfig, LoggerFactory
+from src import BoundLogger, LoggerConfig, LoggerFactory
 from src.decorators.classes import class_log
 from src.decorators.functions import function_log
 
@@ -54,5 +54,31 @@ def main() -> None:
         factory.shutdown()
 
 
+def logger_factory() -> LoggerFactory:
+    config = LoggerConfig(
+        service_name="test",
+        level="INFO",
+        directory="logs",
+        json_logs=True,
+        module_levels={"test": "DEBUG"},
+        sampling={"rate": 1.0, "deterministic": True},
+    )
+
+    with LoggerFactory(config).lifecycle() as factory:
+        logger: BoundLogger = factory.get_logger()
+        logger.set_trace("demo-trace")
+        logger.set_span("demo-span")
+        logger.info("embed.response", extra={"event": "embed.response", "status": 200})
+        logger.warning("This is a warning with extra fields", extra={"user_id": 123, "operation": "test"})
+
+        s = SampleClass()
+        s.instance_method(5, 10)
+        s.class_method(5, 10)
+        s.static_method(5, 10)
+
+        sample_function(5, 10)
+        error_function(5, 10)
+
+
 if __name__ == "__main__":
-    main()
+    logger_factory()

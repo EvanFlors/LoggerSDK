@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import os
 import sys
-from types import FrameType
 from dataclasses import dataclass
+from types import FrameType
 
 _SKIP_NAMES = {
     "process",

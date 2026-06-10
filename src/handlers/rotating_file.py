@@ -45,8 +45,12 @@ def make_rotating_file_handler(cfg: LoggerConfig) -> logging.Handler:
 
     if rot is not None and rot.when is not None:
         h = _GzTimedRotatingFileHandler(
-            filename, when=rot.when, interval=rot.interval,
-            backupCount=rot.backup_count, utc=rot.utc, encoding="utf-8",
+            filename,
+            when=rot.when,
+            interval=rot.interval,
+            backupCount=rot.backup_count,
+            utc=rot.utc,
+            encoding="utf-8",
         )
     else:
         h = _GzRotatingFileHandler(
