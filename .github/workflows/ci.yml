@@ -1,0 +1,37 @@
+name: 'CI'
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[dev]"
+      - run: ruff check src tests
+      - run: mypy src/logger
+
+  test-unit:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    services:
+      rabbitmq:
+        image: rabbitmq:3.13-management
+        ports: [5672:5672, 15672:15672]
+      otel-collector:
+        image: otel/opentelemetry-collector-contrib:0.104.0
+        ports: [4317:4317, 4318:4318]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[dev,amqp,otel]"
+      - run: pytest tests/integration -q
