@@ -532,25 +532,59 @@ factory.shutdown()
 ## Project Structure
 
 ```
-src/logger/
-├── __init__.py                       # Public API
-├── factory.py                        # LoggerFactory (DI)
-├── config.py                         # LoggerConfig (Pydantic v2)
-├── exceptions.py                     # LoggerError, HandlerInitError, ...
+src/
+├── __init__.py                       # Public API re-exports
+├── errors.py                         # Exception hierarchy (renamed from exceptions.py)
+├── exceptions.py                     # Backwards-compat shim → errors.py
+├── config/                           # Settings models
+│   ├── __init__.py
+│   ├── logger_config.py              # LoggerConfig (top-level)
+│   ├── config.py                     # Backwards-compat shim
+│   └── settings/
+│       ├── sampling.py               # SamplingSettings
+│       ├── rotation.py               # RotationSettings
+│       ├── queue.py                  # QueueSettings
+│       ├── console.py                # ConsoleSettings
+│       ├── amqp.py                   # AMQPSettings
+│       └── otel.py                   # OTelSettings
 ├── core/
-│   ├── tracer.py                     # OTel + ContextVar trace facade
+│   ├── tracer.py                     # OTel + ContextVar facade
 │   ├── context.py                    # BoundLogger
 │   ├── caller.py                     # frame-walking caller resolution
-│   ├── filters.py                    # Sampling, Deterministic, Overflow
-│   └── formatters.py                 # JSON, Colored
+│   ├── filters/
+│   │   ├── sampling.py               # SamplingFilter, DeterministicSamplingFilter
+│   │   └── overflow.py               # OverflowFilter, QueueCapacityProbe
+│   ├── formatters/
+│   │   ├── json_formatter.py         # stable JSON for files / structured sinks
+│   │   └── colored_formatter.py      # colored console output
+│   └── transport/
+│       ├── serialize.py              # record_to_json_bytes() — single source of truth
+│       └── batch.py                  # BatchBuffer — sync thread-safe buffer
 ├── handlers/
 │   ├── console.py                    # immediate colored handler
-│   ├── rotating_file.py              # size + time + gzip
-│   ├── amqp.py                       # sync (pika) + async (aio-pika)
-│   └── queue.py                      # QueueHandler + QueueListener
+│   ├── queue.py                      # QueueHandler + QueueListener pipeline
+│   ├── rotating_file.py              # size + time + gzip (GzipOnRolloverMixin)
+│   └── amqp/                         # AMQP transport package
+│       ├── __init__.py
+│       ├── common.py                 # serialize_record + settings validation
+│       ├── sync.py                   # AMQPSyncHandler (pika)
+│       ├── async_handler.py          # AMQPAsyncHandler (aio-pika + drain barrier)
+│       ├── async_loop.py             # LoopRunner — dedicated event-loop thread
+│       └── factory.py                # make_amqp_handler dispatch
+├── factory/                          # DI entrypoint package
+│   ├── __init__.py
+│   ├── logger_factory.py             # LoggerFactory class
+│   ├── registry.py                   # active-factory registry
+│   ├── builder.py                    # build_handlers(config) → HandlerPlan
+│   └── factory.py                    # Backwards-compat shim
 ├── integrations/
-│   └── opentelemetry.py              # OTel setup, OTLP exporter
+│   └── opentelemetry/                # OTel integration package
+│       ├── __init__.py
+│       ├── provider.py               # configure_opentelemetry()
+│       └── exporter.py               # OTLPSettingsAdapter (gRPC / HTTP)
 └── decorators/
+    ├── __init__.py
+    ├── base.py                       # active_factory(), build_context_string()
     ├── functions.py                  # @function_log
     └── classes.py                    # @class_log
 ```

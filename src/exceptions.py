@@ -1,14 +1,34 @@
-class LoggerError(Exception):
-    """Base exception for logger errors."""
+"""
+Backwards-compatibility shim.
 
-class LoggerConfigError(LoggerError):
-    """Exception raised for errors in the logger configuration."""
+The exception types used to live in this file. They were renamed to
+`src/errors.py` in v1.1.0; this module re-exports them so existing
+imports (`from src.exceptions import AMQPConnectError`) keep working.
+"""
+from .errors import (
+    AMQPConnectError,
+    AMQPError,
+    ConfigError,
+    HandlerBuildError,
+    HandlerError,
+    HandlerInitError,
+    LoggerConfigError,
+    LoggerError,
+    LoggerShutdownError,
+    OTelError,
+    ShutdownError,
+)
 
-class LoggerShutdownError(LoggerError):
-    """Exception raised for errors during logger shutdown."""
-
-class HandlerInitError(LoggerError):
-    """Exception raised for errors during handler initialization."""
-
-class AMQPConnectError(LoggerError):
-    """Exception raised for errors during AMQP connection."""
+__all__ = [
+    "AMQPConnectError",
+    "AMQPError",
+    "ConfigError",
+    "HandlerBuildError",
+    "HandlerError",
+    "HandlerInitError",
+    "LoggerConfigError",
+    "LoggerError",
+    "LoggerShutdownError",
+    "OTelError",
+    "ShutdownError",
+]

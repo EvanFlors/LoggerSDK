@@ -1,54 +1,71 @@
+"""
+`@function_log` — log function entry and exit with timing.
+
+If no `LoggerFactory` is active, the decorator is a transparent
+pass-through (it just calls the function). When a factory is active,
+it derives a `BoundLogger` for the call site and emits two records:
+one on entry, one on exit (or on exception).
+"""
 from __future__ import annotations
 
 import functools
-import inspect
 import json
 import time
 import traceback
 from collections.abc import Callable
 from typing import Any
 
-from core.context import BoundLogger
+from src.decorators.base import active_factory, bound_logger_for_call
 
 
-def function_log(*, show_args: bool = True, show_result: bool = True) -> Callable:
+def _safe(obj: Any) -> Any:
     """
-    Decorator factory. Uses a factory-bound logger captured from the call site
-    via `factory.get_logger().bind(context)`. Falls back to stdlib root if no
-    factory is active.
+    Return `obj` if it's JSON-serializable (with a `default=str` fallback),
+    else fall back to its `repr`. Used to make sure decorator-emitted
+    `cur_args` / `result` extras never raise out of the emit path.
     """
+    try:
+        json.dumps(obj, default=str)
+        return obj
+    except Exception:
+        return repr(obj)
+
+
+def function_log(*, show_args: bool = True, show_result: bool = True) -> Callable[..., Any]:
+    """Decorator factory. See module docstring for behavior."""
 
     def decorator(func: Callable) -> Callable:
-        sig = inspect.signature(func)
-
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            factory = _active_factory()
+            factory = active_factory()
             if factory is None:
                 return func(*args, **kwargs)
-            logger = _bind_for_call(factory, func, args)
+            log = bound_logger_for_call(factory, func, args)
             start = time.perf_counter()
             try:
                 if show_args:
-                    logger.info(
+                    log.info(
                         f"Executing {func.__name__}",
-                        extra={"type": "Execution",
-                               "cur_args": _safe(args), "cur_kwargs": _safe(kwargs)},
+                        extra={
+                            "type": "Execution",
+                            "cur_args": _safe(args),
+                            "cur_kwargs": _safe(kwargs),
+                        },
                     )
                 else:
-                    logger.info("Executing function", extra={"type": "Execution"})
+                    log.info("Executing function", extra={"type": "Execution"})
                 result = func(*args, **kwargs)
                 elapsed = time.perf_counter() - start
                 if show_result:
-                    logger.info(
+                    log.info(
                         f"Finished {func.__name__} in {elapsed:.4f}s",
                         extra={"type": "Result", "result": _safe(result)},
                     )
                 else:
-                    logger.info(f"Finished in {elapsed:.4f}s", extra={"type": "Result"})
+                    log.info(f"Finished in {elapsed:.4f}s", extra={"type": "Result"})
                 return result
             except Exception as exc:
-                logger.error(
+                log.error(
                     f"Exception: {exc}",
                     extra={"type": "Error", "exception": traceback.format_exc(limit=3)},
                 )
@@ -57,33 +74,3 @@ def function_log(*, show_args: bool = True, show_result: bool = True) -> Callabl
         return wrapper
 
     return decorator
-
-
-# ----- helpers (imported from factory to avoid circulars) -----
-_FACTORY_KEY = "_logger_factory"
-
-
-def _active_factory():
-    import logging
-    return getattr(logging.getLogger(), _FACTORY_KEY, None)
-
-
-def _bind_for_call(factory, func, args) -> BoundLogger:
-    module = inspect.getmodule(func)
-    file_name = module.__file__.rsplit("/", 1)[-1] if module and module.__file__ else "<unknown>"
-    class_name = None
-    if args and hasattr(args[0], "__class__"):
-        class_name = args[0].__class__.__name__
-    ctx_parts = [file_name]
-    if class_name:
-        ctx_parts.append(class_name)
-    ctx_parts.append(f"{func.__name__}()")
-    return factory.get_logger().bind(context=" | ".join(ctx_parts))
-
-
-def _safe(obj: Any) -> Any:
-    try:
-        json.dumps(obj, default=str)
-        return obj
-    except Exception:
-        return repr(obj)

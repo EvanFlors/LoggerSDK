@@ -1,4 +1,5 @@
 from src import BoundLogger, LoggerConfig, LoggerFactory
+from src.config import AMQPSettings
 from src.decorators.classes import class_log
 from src.decorators.functions import function_log
 
@@ -27,34 +28,7 @@ def error_function(x, y):
     return x / y
 
 
-def main() -> None:
-    factory = LoggerFactory(LoggerConfig(
-        service_name="test",
-        level="INFO",
-        directory="logs",
-        json_logs=True,
-        module_levels={"test": "DEBUG"},
-        sampling={"rate": 1.0, "deterministic": True},
-    ))
-    try:
-        log = factory.get_logger().bind(context="testing")
-        log.set_trace("demo-trace")
-        log.set_span("demo-span")
-        log.info("embed.response", extra={"event": "embed.response", "status": 200})
-        log.warning("This is a warning with extra fields", extra={"user_id": 123, "operation": "test"})
-
-        s = SampleClass()
-        s.instance_method(5, 10)
-        s.class_method(5, 10)
-        s.static_method(5, 10)
-
-        sample_function(5, 10)
-        error_function(5, 10)
-    finally:
-        factory.shutdown()
-
-
-def logger_factory() -> LoggerFactory:
+def logger_factory() -> None:
     config = LoggerConfig(
         service_name="test",
         level="INFO",
@@ -62,14 +36,21 @@ def logger_factory() -> LoggerFactory:
         json_logs=True,
         module_levels={"test": "DEBUG"},
         sampling={"rate": 1.0, "deterministic": True},
+        amqp=AMQPSettings(
+            url="http://localhost:5672",
+            exchange="logs.fanout",
+            queue="billing-logs",
+            transport="async",
+        ),
     )
 
-    with LoggerFactory(config).lifecycle() as factory:
+    with LoggerFactory(config) as factory:
         logger: BoundLogger = factory.get_logger()
         logger.set_trace("demo-trace")
         logger.set_span("demo-span")
         logger.info("embed.response", extra={"event": "embed.response", "status": 200})
         logger.warning("This is a warning with extra fields", extra={"user_id": 123, "operation": "test"})
+        logger.error("This is an error message", extra={"error_code": "E001", "details": "Something went wrong"})
 
         s = SampleClass()
         s.instance_method(5, 10)
