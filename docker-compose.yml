@@ -6,13 +6,21 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
 
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.104.0
-    command: ["--config=/etc/otel/config.yaml"]
-    volumes:
-      - ./otel-collector.yaml:/etc/otel/config.yaml:ro
-    ports: ["4317:4317", "4318:4318"]
-
   jaeger:
     image: jaegertracing/all-in-one:1.59
-    ports: ["16686:16686", "14250:14250"]
+    environment:
+      # Enable Jaeger's native OTLP receiver (gRPC :4317, HTTP :4318).
+      # Without this, Jaeger only speaks the legacy thrift/grpc
+      # protocol on :14250 and the demo cannot export OTLP directly.
+      COLLECTOR_OTLP_ENABLED: "true"
+      # Bind the OTLP gRPC receiver to all interfaces inside the
+      # container. The all-in-one image defaults to `localhost:4317`
+      # which is unreachable from outside the container.
+      COLLECTOR_OTLP_GRPC_HOST_PORT: "0.0.0.0:4317"
+    ports:
+      # UI on 16686
+      - "16686:16686"
+      # OTLP gRPC — the demo's OTelSettings points here directly.
+      - "4317:4317"
+      # OTLP HTTP — for tools that speak OTLP/HTTP (curl, otel-cli, etc.).
+      - "4318:4318"

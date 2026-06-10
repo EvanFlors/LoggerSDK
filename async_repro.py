@@ -13,7 +13,7 @@ import warnings
 
 import src  # noqa: F401
 from src import LoggerConfig, LoggerFactory
-from src.config import AMQPSettings
+from src.config import AMQPSettings, OTelSettings
 
 
 def main() -> int:
@@ -34,6 +34,12 @@ def main() -> int:
             flush_interval_s=0.5,
             fail_open=False,  # we want to know if connect fails
         ),
+        otel=OTelSettings(
+            enabled=True,
+            service_name="async-repro",
+            exporter="console",
+            protocol="grpc"
+        )
     )
 
     factory = LoggerFactory(config)

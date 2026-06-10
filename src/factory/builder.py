@@ -41,7 +41,11 @@ def build_handlers(config: LoggerConfig) -> HandlerPlan:
         immediate.append(make_console_handler(config))
 
     sinks: list[logging.Handler] = []
-    if config.directory and not config.amqp:
+    # File sink: always added when `directory` is set, regardless of
+    # whether AMQP is also configured. The two transports are
+    # independent — the user may want both for redundancy, or
+    # AMQP-only and accept that files are skipped.
+    if config.directory:
         sinks.append(make_rotating_file_handler(config))
 
     if config.amqp:

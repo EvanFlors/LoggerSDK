@@ -1,4 +1,4 @@
-from logger import LoggerFactory, LoggerConfig
+from src import LoggerConfig, LoggerFactory
 
 config = LoggerConfig(
     service_name="my-service",
