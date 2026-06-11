@@ -54,7 +54,11 @@ def test_json_formatter_attaches_exception():
         )
     f = JSONFormatter(service_name="svc")
     payload = json.loads(f.format(rec))
-    assert "ValueError: boom" in payload["exception"]
+    # New shape: a structured dict, not a string.
+    assert payload["exception"]["type"] == "ValueError"
+    assert payload["exception"]["message"] == "boom"
+    assert isinstance(payload["exception"]["frames"], list)
+    assert len(payload["exception"]["frames"]) >= 1
 
 
 def test_json_formatter_collects_extras():

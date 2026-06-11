@@ -28,6 +28,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from src.core.exception_render import format_exception_structured
+
 # Pre-compute the set of standard LogRecord attribute names once at import
 # time. Anything outside this set is "extra" and goes into the `extras` block.
 _RESERVED = set(
@@ -38,7 +40,14 @@ _RESERVED = set(
 
 
 class JSONFormatter(logging.Formatter):
-    """Stable, reserved-key-aware JSON formatter."""
+    """
+    Stable, reserved-key-aware JSON formatter.
+
+    On `exc_info` records, the `exception` field is a structured dict
+    (type, message, frames) produced by `format_exception_structured`.
+    Each frame carries `file`, `line`, `function`, a `source` snippet,
+    and a `locals` dict. See `src/core/exception_render.py`.
+    """
 
     def __init__(
         self,
@@ -73,7 +82,7 @@ class JSONFormatter(logging.Formatter):
             if hasattr(record, key):
                 payload[key] = getattr(record, key)
         if record.exc_info:
-            payload["exception"] = self.formatException(record.exc_info)
+            payload["exception"] = format_exception_structured(record.exc_info)
         if hasattr(record, "otel_status"):
             payload["otel_status"] = record.otel_status
 
@@ -85,3 +94,12 @@ class JSONFormatter(logging.Formatter):
             payload["extras"] = extras
 
         return json.dumps(payload, ensure_ascii=False, default=str)
+
+    def formatException(self, ei):  # type: ignore[override]
+        """
+        Override stdlib's string formatter with the structured dict.
+        `JSONFormatter.format` reads `payload['exception']` directly via
+        `format_exception_structured`, but `formatException` is also
+        called by some third-party consumers, so we keep it sane.
+        """
+        return format_exception_structured(ei)  # type: ignore[return-value]
