@@ -2,8 +2,8 @@ import time
 
 from fastapi import FastAPI, Request
 
-from src.config import LoggerConfig
-from src.factory import LoggerFactory
+from obserlog.config import LoggerConfig
+from obserlog.factory import LoggerFactory
 
 
 def build_app() -> FastAPI:

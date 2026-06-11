@@ -1,7 +1,7 @@
 """Stress test: create and shut down many factories in succession."""
 import time
-from src import LoggerConfig, LoggerFactory
-from src.config import AMQPSettings
+from obserlogger import LoggerConfig, LoggerFactory
+from obserlog.config import AMQPSettings
 
 n = 50
 t0 = time.perf_counter()

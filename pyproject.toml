@@ -3,17 +3,46 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "logger-sdk-observability"
-version = "0.0.1"
-description = "Structured logging framework with DI, queue pipeline, rotation, RabbitMQ and OpenTelemetry"
+name = "obserlog"
+version = "0.1.0"
+description = "Structured logging framework: DI factory, non-blocking queue, file rotation, RabbitMQ transport, OpenTelemetry traces, and rich exception rendering."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
-authors = [{ name = "Evan Flores", email = "e2002florespulido@gmail.com" }]
-keywords = [
-    "logging", "structured-logging", "opentelemetry", "rabbitmq",
-    "tracing", "async", "queue-handler",
+authors = [
+    { name = "Evan Flores", email = "e2002florespulido@gmail.com" },
 ]
+keywords = [
+    "logging",
+    "structured-logging",
+    "opentelemetry",
+    "tracing",
+    "rabbitmq",
+    "amqp",
+    "rotation",
+    "queue",
+    "observability",
+    "async",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: AsyncIO",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Logging",
+    "Typing :: Typed",
+]
+
 dependencies = [
     "pydantic>=2.12",
     "pydantic-settings>=2.0",
@@ -25,9 +54,8 @@ dependencies = [
 [project.optional-dependencies]
 amqp = [
     "pika>=1.3",
-    "aio-pika>=9.4"
+    "aio-pika>=9.4",
 ]
-
 otel = [
     "opentelemetry-api>=1.27",
     "opentelemetry-sdk>=1.27",
@@ -35,7 +63,6 @@ otel = [
     "opentelemetry-exporter-otlp-proto-http>=1.27",
     "opentelemetry-instrumentation-logging>=0.48b0",
 ]
-
 dev = [
     "pytest>=8",
     "pytest-asyncio>=0.24",
@@ -47,12 +74,63 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/EvanFloresLv/Logger.git"
-Repository = "https://github.com/EvanFloresLv/Logger.git"
+Homepage = "https://github.com/EvanFloresLv/Logger"
+Repository = "https://github.com/EvanFloresLv/Logger"
+Issues = "https://github.com/EvanFloresLv/Logger/issues"
+Changelog = "https://github.com/EvanFloresLv/Logger/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/EvanFloresLv/Logger/blob/main/docs/"
 
+# ---------------------------------------------------------------------------
+# setuptools build configuration
+# ---------------------------------------------------------------------------
 [tool.setuptools]
 package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["logger*"]
+include = ["obserlog*"]
+# Exclude the back-compat shim modules that mirror the new package
+# layout. They live at `src/obserlog/{config,factory,exceptions}.py`
+# for in-tree convenience; downstream users should import from the
+# proper submodules (`from obserlog.config import LoggerConfig`).
+exclude = ["obserlog.egg-info*"]
+
+[tool.setuptools.package-data]
+obserlog = ["py.typed"]
+
+# ---------------------------------------------------------------------------
+# Tooling
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+mypy_path = "src"
+ignore_missing_imports = true
+disable_error_code = [
+    "no-any-return",
+    "override",
+    "type-arg",
+    "misc",
+    "unused-ignore",
+    "attr-defined",
+    "arg-type",
+    "no-untyped-def",
+    "dict-item",
+    "import-untyped",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "integration: requires real RabbitMQ/OTel collector",
+]
+asyncio_mode = "auto"
+pythonpath = ["src"]

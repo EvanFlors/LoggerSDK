@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import pytest
 
-from src.config import LoggerConfig
-from src.errors import ShutdownError
-from src.factory import LoggerFactory
+from obserlog.config import LoggerConfig
+from obserlog.errors import ShutdownError
+from obserlog.factory import LoggerFactory
 
 
 def test_factory_constructs_and_creates_logger(tmp_path):
@@ -42,7 +42,7 @@ def test_factory_context_manager(tmp_path):
 
 
 def test_factory_publishes_to_registry():
-    from src.factory.registry import active
+    from obserlog.factory.registry import active
 
     before = active()
     f = LoggerFactory(LoggerConfig(service_name="reg", directory="/tmp"))

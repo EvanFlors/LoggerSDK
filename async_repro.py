@@ -12,8 +12,8 @@ import time
 import warnings
 
 import src  # noqa: F401
-from src import LoggerConfig, LoggerFactory
-from src.config import AMQPSettings, OTelSettings
+from obserlogger import LoggerConfig, LoggerFactory
+from obserlog.config import AMQPSettings, OTelSettings
 
 
 def main() -> int:

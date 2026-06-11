@@ -1,7 +1,7 @@
-from src import BoundLogger, LoggerConfig, LoggerFactory
-from src.config import AMQPSettings
-from src.decorators.classes import class_log
-from src.decorators.functions import function_log
+from obserlogger import BoundLogger, LoggerConfig, LoggerFactory
+from obserlog.config import AMQPSettings
+from obserlog.decorators.classes import class_log
+from obserlog.decorators.functions import function_log
 
 
 @class_log(show_args=False, show_result=False)

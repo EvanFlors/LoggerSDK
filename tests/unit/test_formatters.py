@@ -4,8 +4,8 @@ from __future__ import annotations
 import json
 import logging
 
-from src.core.formatters.colored_formatter import ConsoleFormatter
-from src.core.formatters.json_formatter import JSONFormatter
+from obserlog.core.formatters.colored_formatter import ConsoleFormatter
+from obserlog.core.formatters.json_formatter import JSONFormatter
 
 
 def _record(**overrides) -> logging.LogRecord:

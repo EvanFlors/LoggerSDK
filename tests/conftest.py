@@ -1,10 +1,10 @@
 """
 Shared pytest fixtures.
 
-The tests assume `src/` is on `sys.path` so that `from src import ...` works.
-`pytest.ini` is configured for that, but the conftest also tries the bare
-`from config import ...` style so that running with `cwd=src` (as older
-versions of this project did) keeps working.
+The tests assume `src/` is on `sys.path` so that
+`import obserlogger` works. `pytest.ini` is configured for that,
+but the conftest also adds the path explicitly for IDEs and
+editors that invoke pytest with different working directories.
 """
 from __future__ import annotations
 
@@ -13,13 +13,12 @@ from pathlib import Path
 
 import pytest
 
-# Make `src` importable no matter where pytest is invoked from.
+# Make `obserlogger` importable no matter where pytest is invoked from.
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _SRC_DIR = _REPO_ROOT / "src"
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
-if str(_SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(_SRC_DIR))
+for path in (_REPO_ROOT, _SRC_DIR):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
 
 @pytest.fixture
@@ -31,7 +30,7 @@ def tmp_logs_dir(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def base_config(tmp_logs_dir: Path):
-    from src.config import LoggerConfig
+    from obserlog.config import LoggerConfig
     return LoggerConfig(service_name="test", directory=str(tmp_logs_dir))
 
 

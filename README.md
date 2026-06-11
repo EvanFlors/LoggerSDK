@@ -1,6 +1,6 @@
-# Logger
+# obserlog
 
-A production-ready Python logging framework for modern backends, microservices, and AI pipelines.
+Production-grade structured logging for Python: DI factory, non-blocking queue, file rotation, RabbitMQ transport, OpenTelemetry traces, and rich exception rendering.
 
 It gives you a single, unified API for emitting structured logs that are **traceable, sampled, and shippable** — locally to console/file, asynchronously to a queue, over RabbitMQ, or to any OpenTelemetry-compatible backend.
 
@@ -75,22 +75,22 @@ This library addresses all of these with one API and one config.
 ## Installation
 
 ```bash
-pip install logger
+pip install obserlog
 ```
 
 With optional transports:
 
 ```bash
-pip install "logger[amqp]"   # RabbitMQ (pika + aio-pika)
-pip install "logger[otel]"   # OpenTelemetry (OTLP gRPC + HTTP)
-pip install "logger[all]"    # everything
+pip install "obserlog[amqp]"   # RabbitMQ (pika + aio-pika)
+pip install "obserlog[otel]"   # OpenTelemetry (OTLP gRPC + HTTP)
+pip install "obserlog[all]"    # everything
 ```
 
 From source:
 
 ```bash
-git clone https://github.com/EvanFloresLv/Logger.git
-cd Logger
+git clone https://github.com/EvanFloresLv/Logger
+cd obserlog
 pip install -e ".[all]"
 ```
 
@@ -101,7 +101,7 @@ Requires Python 3.10+.
 ## Quickstart
 
 ```python
-from logger import LoggerFactory, LoggerConfig
+from obserlog import LoggerFactory, LoggerConfig
 
 # 1. Build a config
 config = LoggerConfig(
@@ -368,7 +368,7 @@ A consumer example lives in [`examples/rabbitmq_consumer.py`](examples/rabbitmq_
 ### `@function_log`
 
 ```python
-from logger.decorators import function_log
+from obserlog.decorators import function_log
 
 @function_log(show_args=False, show_result=False)
 def add(x, y):
@@ -380,7 +380,7 @@ Logs `Executing` and `Finished` entries with timing, the calling module, the fun
 ### `@class_log`
 
 ```python
-from logger.decorators import class_log
+from obserlog.decorators import class_log
 
 @class_log()
 class OrderService:
@@ -431,7 +431,7 @@ A minimal local stack (Collector + Jaeger) is in [`docker-compose.yml`](docker-c
 
 ```python
 from fastapi import FastAPI, Request
-from logger import LoggerFactory, LoggerConfig
+from obserlog import LoggerFactory, LoggerConfig
 
 factory = LoggerFactory(LoggerConfig(
     service_name="api",
@@ -463,7 +463,7 @@ async def access_log(request: Request, call_next):
 ### 1. Local development (console + file)
 
 ```python
-from logger import LoggerFactory, LoggerConfig
+from obserlog import LoggerFactory, LoggerConfig
 
 factory = LoggerFactory(LoggerConfig(service_name="dev", level="DEBUG"))
 log = factory.get_logger().bind(component="auth")
@@ -476,7 +476,7 @@ factory.shutdown()
 ### 2. Production with OTel + RabbitMQ
 
 ```python
-from logger import LoggerFactory, LoggerConfig
+from obserlog import LoggerFactory, LoggerConfig
 
 factory = LoggerFactory(LoggerConfig(
     service_name="billing",
@@ -507,8 +507,8 @@ factory.shutdown()
 ### 3. With decorators
 
 ```python
-from logger import LoggerFactory, LoggerConfig
-from logger.decorators import function_log, class_log
+from obserlog import LoggerFactory, LoggerConfig
+from obserlog.decorators import function_log, class_log
 
 factory = LoggerFactory(LoggerConfig(service_name="orders"))
 
@@ -610,7 +610,7 @@ RUN_INTEGRATION=1 pytest tests/integration -v
 
 The library is a pure-Python package with optional extras. It runs anywhere CPython 3.10+ runs:
 
-- **Python SDK library** — `pip install logger[all]`
+- **Python SDK library** — `pip install obserlog[all]`
 - **FastAPI / Flask / Starlette** — use the lifespan example above
 - **Serverless** — Cloud Run / AWS Lambda / Azure Functions. Configure with `directory="/tmp/logs"` and set `rotation.when=None` (no time rotation) since the filesystem is ephemeral.
 - **Workers / CLIs** — `factory.shutdown()` at the end of `main()`.
@@ -628,7 +628,7 @@ The library is a pure-Python package with optional extras. It runs anywhere CPyt
 
 ## Contributing
 
-PRs welcome. Please run `ruff check`, `mypy src/logger`, and `pytest` before submitting. Add tests for new behavior.
+PRs welcome. Please run `ruff check`, `mypy src/obserlog`, and `pytest` before submitting. Add tests for new behavior.
 
 ---
 
@@ -638,8 +638,3 @@ MIT — see [`LICENSE`](LICENSE).
 
 ---
 
-## Contact
-
-Maintainer: **Evan Flores**
-Email: `efloresp06@liverpool.com.mx`
-Organization: **Liverpool**

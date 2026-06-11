@@ -44,14 +44,14 @@ from pathlib import Path
 # Make `src` importable when this script is run from anywhere (the
 # repo root, the `examples/` dir, or another cwd).
 _REPO_ROOT = Path(__file__).resolve().parent.parent
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
-
-from src import LoggerConfig, LoggerFactory
-from src.config.settings.amqp import AMQPSettings
-from src.config.settings.otel import OTelSettings
-from src.config.settings.rotation import RotationSettings
-from src.decorators import class_log, function_log
+_SRC_DIR = _REPO_ROOT / 'src'
+if str(_SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(_SRC_DIR))
+from obserlog import LoggerConfig, LoggerFactory
+from obserlog.config.settings.amqp import AMQPSettings
+from obserlog.config.settings.otel import OTelSettings
+from obserlog.config.settings.rotation import RotationSettings
+from obserlog.decorators import class_log, function_log
 
 
 # ---------------------------------------------------------------------------

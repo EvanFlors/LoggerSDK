@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 
-from src.core.caller import CallerInfo, resolve_caller
+from obserlog.core.caller import CallerInfo, resolve_caller
 
 
 def test_resolve_caller_returns_caller_info():

@@ -5,10 +5,10 @@ import logging
 
 import pytest
 
-from src.config import LoggerConfig
-from src.config.settings.amqp import AMQPSettings
-from src.config.settings.otel import OTelSettings
-from src.config.settings.sampling import SamplingSettings
+from obserlog.config import LoggerConfig
+from obserlog.config.settings.amqp import AMQPSettings
+from obserlog.config.settings.otel import OTelSettings
+from obserlog.config.settings.sampling import SamplingSettings
 
 
 def test_default_config_is_valid():

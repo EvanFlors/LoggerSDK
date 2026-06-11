@@ -6,12 +6,12 @@ import time
 
 import pytest
 
-from src.config import LoggerConfig
-from src.factory import LoggerFactory
+from obserlog.config import LoggerConfig
+from obserlog.factory import LoggerFactory
 
 
 def test_function_log_passes_through_when_no_factory():
-    from src.decorators.functions import function_log
+    from obserlog.decorators.functions import function_log
 
     @function_log(show_args=False, show_result=False)
     def add(x, y):
@@ -21,7 +21,7 @@ def test_function_log_passes_through_when_no_factory():
 
 
 def test_function_log_logs_entry_and_exit(tmp_path):
-    from src.decorators.functions import function_log
+    from obserlog.decorators.functions import function_log
 
     captured: list[logging.LogRecord] = []
 
@@ -51,7 +51,7 @@ def test_function_log_logs_entry_and_exit(tmp_path):
 
 
 def test_function_log_logs_exception_and_reraises(tmp_path):
-    from src.decorators.functions import function_log
+    from obserlog.decorators.functions import function_log
 
     cfg = LoggerConfig(service_name="dec-err", directory=str(tmp_path))
     f = LoggerFactory(cfg)
@@ -67,7 +67,7 @@ def test_function_log_logs_exception_and_reraises(tmp_path):
 
 
 def test_class_log_wraps_public_methods(tmp_path):
-    from src.decorators.classes import class_log
+    from obserlog.decorators.classes import class_log
 
     captured: list[logging.LogRecord] = []
 

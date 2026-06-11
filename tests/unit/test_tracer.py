@@ -1,8 +1,8 @@
 """Tests for the tracer (ContextVar fallback path — no OTel)."""
 from __future__ import annotations
 
-from src.config.settings.otel import OTelSettings
-from src.core.tracer import Tracer
+from obserlog.config.settings.otel import OTelSettings
+from obserlog.core.tracer import Tracer
 
 
 def test_tracer_uses_contextvars_when_otel_disabled():

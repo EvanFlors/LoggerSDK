@@ -1,4 +1,4 @@
-from src import LoggerConfig, LoggerFactory
+from obserlogger import LoggerConfig, LoggerFactory
 
 config = LoggerConfig(
     service_name="my-service",

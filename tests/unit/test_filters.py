@@ -10,9 +10,9 @@ from __future__ import annotations
 import logging
 import random
 
-from src.config.settings.sampling import SamplingSettings
-from src.core.filters.overflow import OverflowFilter, QueueCapacityProbe
-from src.core.filters.sampling import (
+from obserlog.config.settings.sampling import SamplingSettings
+from obserlog.core.filters.overflow import OverflowFilter, QueueCapacityProbe
+from obserlog.core.filters.sampling import (
     DeterministicSamplingFilter,
     SamplingFilter,
     _Decision,

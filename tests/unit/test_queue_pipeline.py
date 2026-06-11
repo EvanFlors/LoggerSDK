@@ -6,8 +6,8 @@ import logging
 import time
 from pathlib import Path
 
-from src.config import LoggerConfig
-from src.handlers.queue import build_queue_pipeline
+from obserlog.config import LoggerConfig
+from obserlog.handlers.queue import build_queue_pipeline
 
 
 def test_build_queue_pipeline_returns_handler_and_listener():
@@ -24,7 +24,7 @@ def test_pipeline_actually_drains_records(tmp_path: Path):
     a `log.info()` call lands in the file (proving the listener thread
     picked it up and the queue drained).
     """
-    from src.handlers.rotating_file import make_rotating_file_handler
+    from obserlog.handlers.rotating_file import make_rotating_file_handler
 
     cfg = LoggerConfig(service_name="pipe", directory=str(tmp_path))
     sink = make_rotating_file_handler(cfg)

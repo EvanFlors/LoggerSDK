@@ -15,13 +15,13 @@ import logging
 import re
 import sys
 
-from src.core.exception_render import (
+from obserlog.core.exception_render import (
     format_exception_pretty,
     format_exception_structured,
     rich_format_exception,
 )
-from src.core.formatters.colored_formatter import ConsoleFormatter
-from src.core.formatters.json_formatter import JSONFormatter
+from obserlog.core.formatters.colored_formatter import ConsoleFormatter
+from obserlog.core.formatters.json_formatter import JSONFormatter
 
 # Strip ANSI escape codes so we can assert on plain text.
 _ANSI = re.compile(r"\x1b\[[0-9;]*m")
