@@ -45,7 +45,7 @@ class LoggerFactory:
 
         # Per-module log levels.
         for mod, lvl in self._config.module_levels.items():
-            logging.getLogger(mod).setLevel(logging.getLevelName(lvl.upper()))
+            logging.getLogger(mod).setLevel(lvl.upper())
 
         # Build the handler plan, attach the immediate (console) handler
         # directly, and start the queue listener for the deferred sinks.
@@ -120,7 +120,6 @@ class LoggerFactory:
 
     @asynccontextmanager
     async def lifecycle(self):
-        """Async context manager (FastAPI lifespan)."""
         try:
             yield self
         finally:

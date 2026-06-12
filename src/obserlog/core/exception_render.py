@@ -78,7 +78,7 @@ _DUNDER_OR_NOISE = (
     "__class__", "__dict__", "__module__", "__qualname__",
     # Common stdlib module names that show up as "user vars" because
     # they were imported at the top of the file.
-    "sys", "traceback", "logger", "log", "logging",
+    "sys", "traceback", "logger", "log", "logging"
 )
 
 
@@ -322,15 +322,16 @@ def format_exception_pretty(
             skipped = 0
 
         lines: list[str] = []
-        # Boxed header: `┌─ Traceback (most recent call last) ─...─┐`
+        # Header line. The boxed form (`┌─ ... ─...─┐`) was removed;
+        # the renderer now emits a plain colored header for legibility
+        # alongside the source-context lines below.
         header = "Traceback (most recent call last)"
         if skipped > 0:
             header += f"  [skipped {skipped} earlier frame(s)]"
-        width = max(len(header) + 4, 64)
         lines.append(
             _c(
                 _BOLD_RED,
-                f"┌─ {header} " + "─" * (width - len(header) - 4) + "─┐",
+                f"{header}",
                 color,
             )
         )
@@ -338,10 +339,9 @@ def format_exception_pretty(
         for f in frames:
             _render_frame(lines, f, color=color, show_locals=show_locals)
 
-        lines.append(_c(_BOLD_RED, "└" + "─" * (width - 2) + "┘", color))
         # The exception type and message on its own line.
         type_msg = f"{exc_type.__name__}: {exc_val}"
-        lines.append(_c(_BOLD_RED, type_msg, color))
+        lines.append(_c(_BOLD_RED, f"{type_msg}", color))
 
         return "\n".join(lines) + "\n"
     except Exception:

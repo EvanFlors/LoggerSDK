@@ -23,15 +23,19 @@ _LOCK = threading.Lock()
 
 
 def publish(factory: LoggerFactory) -> None:
-    """Make `factory` the active factory for decorator lookup."""
+    """
+    Make `factory` the active factory for decorator lookup.
+    """
     with _LOCK:
         _STACK.append(factory)
     setattr(logging.Logger, _ATTR_NAME, factory)
 
 
 def withdraw(factory: LoggerFactory) -> None:
-    """Remove `factory` from the registry. If it was the top of the stack,
-    fall back to the previous one."""
+    """
+    Remove `factory` from the registry. If it was the top of the stack,
+    fall back to the previous one.
+    """
     with _LOCK, suppress(ValueError):
         _STACK.remove(factory)
     current = getattr(logging.Logger, _ATTR_NAME, None)
@@ -44,5 +48,7 @@ def withdraw(factory: LoggerFactory) -> None:
 
 
 def active() -> LoggerFactory | None:
-    """Return the most recently published factory, or `None`."""
+    """
+    Return the most recently published factory, or `None`.
+    """
     return getattr(logging.Logger, _ATTR_NAME, None)

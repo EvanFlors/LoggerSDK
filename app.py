@@ -1,10 +1,16 @@
-from obserlogger import BoundLogger, LoggerConfig, LoggerFactory
+from obserlog import BoundLogger, LoggerConfig, LoggerFactory
 from obserlog.config import AMQPSettings
 from obserlog.decorators.classes import class_log
 from obserlog.decorators.functions import function_log
 
 
-@class_log(show_args=False, show_result=False)
+@class_log(
+    show_args=False,
+    show_result=False,
+    render_rich_traceback=True,
+    suppress_stdlib_traceback=True,
+    show_decorator_frames=False,
+)
 class SampleClass:
     def instance_method(self, x, y):
         return x + y
@@ -18,12 +24,24 @@ class SampleClass:
         return x + y
 
 
-@function_log(show_args=False, show_result=False)
+@function_log(
+    show_args=False,
+    show_result=False,
+    render_rich_traceback=True,
+    suppress_stdlib_traceback=True,
+    show_decorator_frames=False,
+)
 def sample_function(x, y):
     return x + y
 
 
-@function_log(show_args=False, show_result=False)
+@function_log(
+    show_args=False,
+    show_result=False,
+    render_rich_traceback=True,
+    suppress_stdlib_traceback=True,
+    show_decorator_frames=False,
+)
 def error_function(x, y):
     return x / y
 
@@ -59,6 +77,12 @@ def logger_factory() -> None:
 
         sample_function(5, 10)
         error_function(5, 10)
+
+        # No `try/except` needed: the decorator renders the rich
+        # traceback and suppresses the stdlib `Traceback (most recent
+        # call last):` follow-up print. The original exception still
+        # propagates, so the process exits with a non-zero status.
+        error_function(5, 0)
 
 
 if __name__ == "__main__":

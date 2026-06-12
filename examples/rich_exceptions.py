@@ -20,8 +20,8 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 _SRC_DIR = _REPO_ROOT / 'src'
 if str(_SRC_DIR) not in sys.path:
     sys.path.insert(0, str(_SRC_DIR))
-from obserlog import LoggerConfig, LoggerFactory
-from obserlog.core.exception_render import format_exception_pretty
+from obserlog import LoggerConfig, LoggerFactory  # noqa: E402
+from obserlog.core.exception_render import format_exception_pretty  # noqa: E402
 
 
 # ---------------------------------------------------------------------------

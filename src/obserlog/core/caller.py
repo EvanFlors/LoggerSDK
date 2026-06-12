@@ -46,6 +46,9 @@ class CallerInfo:
     def render(self) -> str:
         return f"{self.file}:{self.line} {self.qualname}()"
 
+    def values(self) -> tuple:
+        return (self.file, self.line, self.func, self.qualname)
+
 
 def _class_from_frame(frame: FrameType) -> str | None:
     self_obj = frame.f_locals.get("self")

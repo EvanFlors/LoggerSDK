@@ -377,6 +377,43 @@ def add(x, y):
 
 Logs `Executing` and `Finished` entries with timing, the calling module, the function name, and (if present) the enclosing class. Decorator overhead is negligible — `inspect.getmodule` is cached and the resolved context is reused.
 
+#### Exception handling
+
+When the decorated function raises, the decorator emits a minimal `ERROR` record (message is the function name, `extras` carries `{"type": "Error", "function": ...}`), renders the rich boxed `▶` traceback once, and suppresses the duplicated stdlib `Traceback (most recent call last):` print to stderr. The original exception still propagates, so the caller's `try/except` works and the process exits non-zero on unhandled failures — no `try/except` wrapper is needed at the call site:
+
+```python
+@function_log(show_args=False, show_result=False)
+def divide(x, y):
+    return x / y
+
+# No try/except — the decorator renders the rich traceback, the
+# exception still propagates, exit code is 1.
+divide(5, 0)
+```
+
+All exception-handling flags are explicit, per-decorator:
+
+| Flag | Default | Behavior |
+|---|---|---|
+| `log_exceptions` | `True` | Emit a log record at all on exception. Set to `False` to make the decorator completely silent on errors. |
+| `exc_extra_fields` | `False` | Include `exc_type` / `exc_message` in the `extras` dict. The rich boxed traceback already includes them, so this is off by default. |
+| `render_rich_traceback` | `True` | Also emit `log.exception(...)` so the rich boxed `▶` traceback renders even without a `try/except` at the call site. |
+| `suppress_stdlib_traceback` | `True` | Install a silent `sys.excepthook` and re-raise, so the stdlib `Traceback (most recent call last):` print is suppressed on unhandled exceptions. The hook swap is process-global; call `restore_default_excepthook()` to undo it. |
+| `show_decorator_frames` | `False` | Hide the decorator's own wrapper frame from the rich traceback. The user only sees frames inside their own code. Set to `True` to keep the wrapper frame (useful when debugging the decorator). |
+
+```python
+from obserlog.decorators import function_log
+
+# Quiet mode: caller is fully responsible for logging.
+@function_log(log_exceptions=False, render_rich_traceback=False)
+def f(): ...
+
+# Restore the stdlib excepthook if a previous decorated call left
+# the silent hook installed.
+from obserlog.decorators.functions import restore_default_excepthook
+restore_default_excepthook()
+```
+
 ### `@class_log`
 
 ```python
@@ -391,7 +428,17 @@ class OrderService:
     def _validate(order): ...   # private — skipped
 ```
 
-Wraps every **public** callable (instance / classmethod / staticmethod) with `function_log`. Private names (starting with `_`) are skipped. The decorator is `__slots__`- and frozen-class-safe: if `setattr` fails, a `RuntimeWarning` is emitted and that method is left untouched.
+Wraps every **public** callable (instance / classmethod / staticmethod) with `function_log`. Private names (starting with `_`) are skipped. The decorator is `__slots__`- and frozen-class-safe: if `setattr` fails, a `RuntimeWarning` is emitted and that method is left untouched. The same exception-handling flags from `@function_log` are forwarded to every method it wraps:
+
+```python
+@class_log(
+    render_rich_traceback=True,
+    suppress_stdlib_traceback=True,
+    show_decorator_frames=False,
+)
+class Service:
+    def may_fail(self): ...
+```
 
 ---
 

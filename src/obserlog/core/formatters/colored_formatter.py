@@ -30,6 +30,17 @@ _LOG_COLORS: dict[str, str] = {
     "WARNING": "yellow",
     "ERROR": "red",
     "CRITICAL": "bold_red",
+    "GRAY": "gray"
+}
+
+CONTEXT_COLORS: dict[str, str] = {
+    "gray": "\033[38;2;150;150;150m",
+    "bold": "\033[1m",
+    "faint": "\033[2m",
+    "italic": "\033[3m",
+    "underline": "\033[4m",
+    "blink": "\033[5m",
+    "reset": "\033[0m"
 }
 
 
@@ -42,10 +53,10 @@ class ConsoleFormatter(ColoredFormatter):
             use_colors = False
 
         fmt = (
-            "%(log_color)s[%(asctime)s] [%(levelname)s]%(reset)s"
-            " [%(name)s] [%(context)s]"
-            " [trace=%(trace_id)s span=%(span_id)s]"
-            "%(extras)s - %(message)s"
+            "%(log_color)s[%(asctime)s] [%(levelname)s] [%(name)s]%(reset)s"
+            f" {CONTEXT_COLORS['bold']}[%(context)s]{CONTEXT_COLORS['reset']}"
+            f" {CONTEXT_COLORS['gray']} [trace=%(trace_id)s span=%(span_id)s] %(extras)s {CONTEXT_COLORS['reset']}"
+            " - %(message)s"
         ) if use_colors else _BASE
 
         # Save for formatException() — color use should match the
@@ -64,15 +75,19 @@ class ConsoleFormatter(ColoredFormatter):
         # never raise KeyError, even for plain stdlib log calls.
         if not hasattr(record, "context"):
             record.context = "<no-context>"
+
         if not hasattr(record, "trace_id"):
             record.trace_id = "0" * 32
+
         if not hasattr(record, "span_id"):
             record.span_id = "0" * 16
+
         extras: dict[str, Any] = {
             k: v for k, v in record.__dict__.items()
             if k not in _RESERVED
             and k not in ("context", "trace_id", "span_id")
         }
+
         record.extras = (
             " | extras=" + json.dumps(extras, default=str) if extras else ""
         )

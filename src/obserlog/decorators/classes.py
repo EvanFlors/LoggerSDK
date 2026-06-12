@@ -26,8 +26,23 @@ def _unwrap(value: object) -> tuple[object, bool, bool]:
     return None, False, False
 
 
-def class_log(*, show_args: bool = True, show_result: bool = True) -> Callable[..., Any]:
-    """Decorator factory. See module docstring for behavior."""
+def class_log(
+    *,
+    show_args: bool = True,
+    show_result: bool = True,
+    log_exceptions: bool = True,
+    exc_extra_fields: bool = False,
+    render_rich_traceback: bool = True,
+    suppress_stdlib_traceback: bool = True,
+    show_decorator_frames: bool = False,
+) -> Callable[..., Any]:
+    """
+    Decorator factory. See module docstring for behavior.
+
+    Forwards the same exception-handling flags as `@function_log`
+    to every method it wraps. See `function_log` for the meaning
+    of each flag.
+    """
 
     def decorator(cls: type) -> type:
         # If no factory is active there's nothing to do; the decorator
@@ -40,7 +55,15 @@ def class_log(*, show_args: bool = True, show_result: bool = True) -> Callable[.
             func, is_static, is_class = _unwrap(value)
             if func is None:
                 continue
-            wrapped = function_log(show_args=show_args, show_result=show_result)(func)
+            wrapped = function_log(
+                show_args=show_args,
+                show_result=show_result,
+                log_exceptions=log_exceptions,
+                exc_extra_fields=exc_extra_fields,
+                render_rich_traceback=render_rich_traceback,
+                suppress_stdlib_traceback=suppress_stdlib_traceback,
+                show_decorator_frames=show_decorator_frames,
+            )(func)
             try:
                 if is_static:
                     setattr(cls, name, staticmethod(wrapped))

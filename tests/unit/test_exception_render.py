@@ -108,11 +108,10 @@ def test_structured_locals_filters_dunder():
 # ---------------------------------------------------------------------------
 # Pretty rendering
 # ---------------------------------------------------------------------------
-def test_pretty_starts_with_boxed_header():
+def test_pretty_starts_with_header():
     exc_info = _produce_exc()
     out = _ANSI.sub("", format_exception_pretty(exc_info, color=False))
-    assert "┌─ Traceback" in out
-    assert "└" in out
+    assert "Traceback (most recent call last)" in out
     # Ends with the exception type and message.
     assert out.rstrip().endswith("KeyError: 'missing_key'")
 
@@ -172,8 +171,8 @@ def test_pretty_show_locals_can_be_disabled():
     # doesn't render the locals block.
     assert "inner" in on  # the test function name
     # Both should still contain the boxed header.
-    assert "┌─ Traceback" in on
-    assert "┌─ Traceback" in off
+    assert "Traceback (most recent call last)" in on
+    assert "Traceback (most recent call last)" in off
 
 
 def test_pretty_handles_none_and_bare():
@@ -184,7 +183,7 @@ def test_pretty_handles_none_and_bare():
     out = format_exception_pretty(bare_exc_info, color=False)
     # The header and type-line still render. `str(KeyError("x"))` is
     # `"'x'"` (with quotes) — the literal repr of the message.
-    assert "┌─ Traceback" in out
+    assert "Traceback (most recent call last)" in out
     assert "KeyError: 'x'" in out
 
 
@@ -222,14 +221,14 @@ def test_console_formatter_uses_pretty_exception():
         msg="failed", args=(), exc_info=_produce_exc(),
     )
     line = fmt.format(rec)
-    assert "┌─ Traceback" in line
+    assert "Traceback (most recent call last)" in line
     assert "KeyError" in line
     # Note: the `ColoredFormatter` base class always appends a `\x1b[0m`
     # reset at end-of-line, so we don't assert `ANSI is None` on the
-    # full line. The exception box itself has no color codes when
+    # full line. The exception block itself has no color codes when
     # `use_colors=False`; that's the part we render.
-    box = line.split("┌─ Traceback", 1)[1].split("└", 1)[0]
-    assert _ANSI.search(box) is None
+    block = line.split("Traceback (most recent call last)", 1)[1]
+    assert _ANSI.search(block) is None
 
 
 def test_console_formatter_color_default_on_tty(monkeypatch):

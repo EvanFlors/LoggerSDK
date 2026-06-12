@@ -36,6 +36,6 @@ class BoundLogger(logging.LoggerAdapter):
         merged.setdefault("span_id", self._tracer.current_span_id())
         if "context" not in merged:
             caller = resolve_caller()
-            merged["context"] = f"{self.logger.name} | {caller.render()}"
+            merged["context"] = f"{caller.render()}"
         kwargs["extra"] = merged
         return msg, kwargs
